@@ -9,6 +9,12 @@
   "name": "mstd-ui",
   "version": "0.1.0",
   "private": true,
+  "devDependencies": {
+    "electron": "^10.1.2",
+    "electron-builder": "^22.8.1",
+    "concurrently": "^5.3.0",
+    "wait-on": "^5.2.0"
+  },
   "dependencies": {
     "@material-ui/core": "^4.11.0",
     "@material-ui/icons": "^4.9.1",
@@ -19,26 +25,22 @@
     "@types/node": "^12.0.0",
     "@types/react": "^16.9.0",
     "@types/react-dom": "^16.9.0",
-    "concurrently": "^5.3.0",
+    "axios": "^0.20.0",
     "cross-env": "^7.0.2",
-    "electron": "^10.1.0",
-    "electron-builder": "^22.8.0",
     "electron-is-dev": "^1.2.0",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-router-dom": "^5.2.0",
     "react-scripts": "3.4.3",
-    "typescript": "~3.7.2",
-    "wait-on": "^5.2.0"
+    "typescript": "~3.7.2"
   },
   "scripts": {
     "react-start": "react-scripts start",
     "react-build": "react-scripts build",
     "react-test": "react-scripts test --env=jsdom",
     "react-eject": "react-scripts eject",
-    "electron-build": "electron-builder",
     "release": "yarn react-build && electron-builder --publish=always",
-    "build": "yarn react-build && yarn electron-build",
+    "build": "yarn react-build && yarn electron-builder",
     "start": "concurrently \"cross-env BROWSER=none yarn react-start\" \"wait-on http://localhost:3000 && electron .\""
   },
   "eslintConfig": {
