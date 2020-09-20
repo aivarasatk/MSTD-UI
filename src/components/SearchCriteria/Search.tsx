@@ -9,25 +9,27 @@ import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import Input from '@material-ui/core/Input';
 import './Search.css';
+import * as api from "../../api/mstdApi"
+import * as mapping from "../../json/mapping"
 
-class Search extends Component<{}, { searchCategory: string, searchOrderBy: number, searchValue: string }> {
+class Search extends Component<{}, { searchCategory: api.TorrentCategory, searchOrderBy: api.Sorting, searchValue: string }> {
 
     constructor(props: any) {//TODO: realtype
         super(props);
         this.state = {
-            searchCategory: 'All',
-            searchOrderBy: 1,
+            searchCategory: api.TorrentCategory.All,
+            searchOrderBy: api.Sorting.SeedersDesc,
              searchValue: ""
         };
     }
 
     handleCategoryChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        let radioOption:string = (event.target as HTMLInputElement).value;
+        let radioOption:api.TorrentCategory = ((event.target as HTMLInputElement).value as api.TorrentCategory);
         this.setState({ searchCategory: radioOption });
       };
 
     onHandleOrderByChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-        this.setState({ searchOrderBy: event.target.value as number});
+        this.setState({ searchOrderBy: event.target.value as api.Sorting});
     };
 
     onHandleSearchInputChange = (event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
@@ -54,15 +56,11 @@ class Search extends Component<{}, { searchCategory: string, searchOrderBy: numb
                             <Grid item >
                                 <FormControl>
                                     <Select value={this.state.searchOrderBy} onChange={this.onHandleOrderByChange}>
-                                        {/* have a json(?) with categories and use map to yield a list like current */}
-                                        <MenuItem value={1}>{"Seeders Desc. (recommended)"}</MenuItem>
-                                        <MenuItem value={2}>{"Seeders Asc."}</MenuItem>
-                                        <MenuItem value={3}>{"Time Asc."}</MenuItem>
-                                        <MenuItem value={4}>{"Time Desc."}</MenuItem>
-                                        <MenuItem value={5}>{"Size Asc."}</MenuItem>
-                                        <MenuItem value={6}>{"Size Desc."}</MenuItem>
-                                        <MenuItem value={7}>{"Leechers Asc."}</MenuItem>
-                                        <MenuItem value={8}>{"Leechers Desc."}</MenuItem>
+                                        {
+                                            mapping.SortOrderMapping.map(a => 
+                                                <MenuItem value={a.key}>{a.value}</MenuItem>
+                                            )
+                                        }
                                     </Select>
                                 </FormControl>
                             </Grid>
@@ -71,14 +69,11 @@ class Search extends Component<{}, { searchCategory: string, searchOrderBy: numb
                         <Grid container item xs={12}>
                             <FormControl component="fieldset">
                                 <RadioGroup row aria-label="categories" value={this.state.searchCategory} onChange={this.handleCategoryChange}>
-                                    {/* have a json(?) with categories and use map to yield a list like current */}
-                                    <FormControlLabel value="All" control={<Radio />} label="All" />
-                                    <FormControlLabel value="Movies" control={<Radio />} label="Movies" />
-                                    <FormControlLabel value="TV" control={<Radio />} label="TV" />
-                                    <FormControlLabel value="Games" control={<Radio />} label="Games" />
-                                    <FormControlLabel value="Music" control={<Radio />} label="Music" />
-                                    <FormControlLabel value="Applications" control={<Radio />} label="Applications" />
-                                    <FormControlLabel value="XXX" control={<Radio />} label="XXX" />
+                                    {
+                                        mapping.TorrentCategoryMapping.map(c =>
+                                            <FormControlLabel value={c} control={<Radio />} label={c} />
+                                        )
+                                    }
                                 </RadioGroup>
                             </FormControl>
                         </Grid>
