@@ -42,43 +42,40 @@ class Search extends Component<{}, { searchCategory: api.TorrentCategory, search
 
     render() {
         return (
-            <div>
-                <fieldset >
-                    <legend>Search criteria</legend>
-                    <Grid container spacing={3}>
-                        <Grid container item direction="row" justify="flex-start" spacing={5}>
-                            <Grid item xs={4}>{/*fill space*/}
-                                <Input fullWidth placeholder="Search for torrents..." onChange={this.onHandleSearchInputChange}/> {/*Add EndAdornment with "search" icon for search, Enter key for search*/}
-                            </Grid>
-                            <Grid item >{/*temporary. Later on will be part of seach*/}
-                                <Button variant="contained" color="primary" onClick={this.executeSeach}>Search</Button>
-                            </Grid>
-                            <Grid item >
-                                <FormControl>
-                                    <Select value={this.state.searchOrderBy} onChange={this.onHandleOrderByChange}>
-                                        {
-                                            mapping.SortOrderMapping.map(a => 
-                                                <MenuItem value={a.key}>{a.value}</MenuItem>
-                                            )
-                                        }
-                                    </Select>
-                                </FormControl>
-                            </Grid>
+            <div style={{padding: 16}}>
+                <Grid container spacing={3}>
+                    <Grid container item direction="row" justify="flex-start" spacing={5}>
+                        <Grid item xs={4}>
+                            <Input fullWidth placeholder="Search for torrents..." onChange={this.onHandleSearchInputChange}/> {/*Add EndAdornment with "search" icon for search, Enter key for search*/}
                         </Grid>
-
-                        <Grid container item xs={12}>
-                            <FormControl component="fieldset">
-                                <RadioGroup row aria-label="categories" value={this.state.searchCategory} onChange={this.handleCategoryChange}>
+                        <Grid item >{/*temporary. Later on will be part of seach*/}
+                            <Button variant="contained" color="primary" onClick={this.executeSeach}>Search</Button>
+                        </Grid>
+                        <Grid item >
+                            <FormControl>
+                                <Select value={this.state.searchOrderBy} onChange={this.onHandleOrderByChange}>
                                     {
-                                        mapping.TorrentCategoryMapping.map(c =>
-                                            <FormControlLabel value={c} control={<Radio />} label={c} />
+                                        mapping.SortOrderMapping.map(a => 
+                                            <MenuItem value={a.key}>{a.value}</MenuItem>
                                         )
                                     }
-                                </RadioGroup>
+                                </Select>
                             </FormControl>
                         </Grid>
                     </Grid>
-                </fieldset>
+
+                    <Grid container item xs={12}>
+                        <FormControl component="fieldset">
+                            <RadioGroup row aria-label="categories" value={this.state.searchCategory} onChange={this.handleCategoryChange}>
+                                {
+                                    mapping.TorrentCategoryMapping.map(c =>
+                                        <FormControlLabel value={c} control={<Radio />} label={c} />
+                                    )
+                                }
+                            </RadioGroup>
+                        </FormControl>
+                    </Grid>
+                </Grid>
             </div>
         );
     }
