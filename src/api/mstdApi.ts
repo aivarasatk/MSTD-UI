@@ -625,6 +625,7 @@ export interface ITorrentEntry {
 export class TorrentQueryResult implements ITorrentQueryResult {
     torrentEntries?: TorrentEntry[] | undefined;
     isLastPage?: boolean;
+    source?: TorrentSource;
 
     constructor(data?: ITorrentQueryResult) {
         if (data) {
@@ -643,6 +644,7 @@ export class TorrentQueryResult implements ITorrentQueryResult {
                     this.torrentEntries!.push(TorrentEntry.fromJS(item));
             }
             this.isLastPage = _data["IsLastPage"];
+            this.source = _data["Source"];
         }
     }
 
@@ -661,6 +663,7 @@ export class TorrentQueryResult implements ITorrentQueryResult {
                 data["TorrentEntries"].push(item.toJSON());
         }
         data["IsLastPage"] = this.isLastPage;
+        data["Source"] = this.source;
         return data; 
     }
 }
@@ -668,6 +671,7 @@ export class TorrentQueryResult implements ITorrentQueryResult {
 export interface ITorrentQueryResult {
     torrentEntries?: TorrentEntry[] | undefined;
     isLastPage?: boolean;
+    source?: TorrentSource;
 }
 
 export class TorrentSearchResult implements ITorrentSearchResult {

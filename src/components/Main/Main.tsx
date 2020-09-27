@@ -20,28 +20,46 @@ import * as mapping from "../../json/mapping"
 import { Configuration } from '../../configuration/Configuration';
 import { Card } from '@material-ui/core';
 
+const startingPage:number = 1;
+
+class SourceSearchState
+{
+    source:api.TorrentSource;
+    isLastPage:boolean;
+
+    constructor(source:api.TorrentSource, isLastPage:boolean) {
+        this.source = source;
+        this.isLastPage = isLastPage;
+    }
+}
+
 class Main extends Component
     <{config: Configuration}, 
 
     {   searchCategory: api.TorrentCategory, 
         searchOrderBy: api.Sorting, 
         searchValue: string,
-        torrentEntries: api.TorrentEntry[]
+        torrentEntries: api.TorrentEntry[],
+        currentPage:number
+        sourceSearchStates: SourceSearchState[]
     }> 
     {
-
+    
     apiClient: api.Client;
-
 
     constructor(props: any) {//TODO: realtype
         super(props);
+        this.apiClient = new api.Client(this.props.config.apiUrl);
+
         this.state = {
             searchCategory: api.TorrentCategory.All,
             searchOrderBy: api.Sorting.SeedersDesc,
             searchValue: "",
-            torrentEntries: new Array<api.TorrentEntry>()
+            torrentEntries: new Array<api.TorrentEntry>(),
+            sourceSearchStates: new Array<SourceSearchState>(),
+            currentPage: startingPage
         };
-        this.apiClient = new api.Client(this.props.config.apiUrl);
+        
     }
 
     handleCategoryChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,25 +69,52 @@ class Main extends Component
 
     onHandleOrderByChange = (event: React.ChangeEvent<{ value: unknown }>) => {
         this.setState({ searchOrderBy: event.target.value as api.Sorting});
+        //todo: redo search with new orderby
     };
 
     onHandleSearchInputChange = (event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
         this.setState({ searchValue: event.target.value});
+        //todo: validation - don't allow search empty
     };
 
-    executeSearch = () => {
-        let arr:api.TorrentEntry[];
+    executeSearch = (page?:number) => {
+        if(page == undefined)
+        {
+            page = startingPage
+            //reset
+            this.setState({
+                currentPage: startingPage, 
+                torrentEntries: new Array<api.TorrentEntry>()
+            });
+        }
 
-        var urls:string[] = ['https://1337x.to/', 'https://tpb.party/', 'https://kickasstorrents.to/'];
+        var urls:string[] = ['https://1337x.to/'];//todo: source filter based on searchStates
         this.apiClient
-            .torrents(urls, this.state.searchOrderBy, this.state.searchCategory, this.state.searchValue, 1)
+            .torrents(urls, this.state.searchOrderBy, this.state.searchCategory, this.state.searchValue, page)
             .then(res => 
+            {
+                const arr = res.torrents?.flatMap(f => f.torrentEntries ?? new Array<api.TorrentEntry>()) ?? new Array<api.TorrentEntry>();
+                const searchStates = res.torrents.map(s => new SourceSearchState(s.source, s.isLastPage));
+                this.setState(
                 {
-                    arr = res.torrents?.flatMap(f => f.torrentEntries ?? new Array<api.TorrentEntry>()) ?? new Array<api.TorrentEntry>();
-                    this.setState({torrentEntries: arr})
-                },
-             rejected => console.log(rejected))
+                    torrentEntries: this.state.torrentEntries.concat(arr),
+                    sourceSearchStates: searchStates
+                });
+            },
+            rejected => console.log(rejected) /*todo: visual feedback */);
     };
+
+    executeLoadMore = () =>{
+        if(this.state.sourceSearchStates.every(e => e.isLastPage))
+        {
+            //TODO: handle visual feedback in search, prevent load more. 
+            return;
+        }
+
+        this.executeSearch(this.state.currentPage + 1);
+        //todo: validation that it succeeded, checks for "last page"
+        this.setState({currentPage: this.state.currentPage + 1});
+    }
 
     render() {
         return (
@@ -82,7 +127,7 @@ class Main extends Component
                                     <Input fullWidth placeholder="Search for torrents..." onChange={this.onHandleSearchInputChange}/> {/*Add EndAdornment with "search" icon for search, Enter key for search*/}
                                 </Grid>
                                 <Grid item >{/*temporary. Later on will be part of seach*/}
-                                    <Button variant="contained" color="primary" onClick={this.executeSearch}>Search</Button>
+                                    <Button variant="contained" color="primary" onClick={() => this.executeSearch()}>Search</Button>
                                 </Grid>
                                 <Grid item >
                                     <FormControl>
@@ -113,8 +158,8 @@ class Main extends Component
                 </Card>
                 
                 <div style={{paddingTop: 32}}>
-                    <TableContainer component={Paper}>
-                        <Table aria-label="simple table">
+                    <TableContainer component={Paper} style={{height: '70vh'}}>
+                        <Table stickyHeader aria-label="simple table">
                             <TableHead>
                                 <TableRow>
                                     <TableCell>Title</TableCell>
@@ -131,8 +176,8 @@ class Main extends Component
                                         <TableCell component="th" scope="row"> {entry.title} </TableCell>
                                         <TableCell align="right">{entry.seeders}</TableCell>
                                         <TableCell align="right">{entry.leechers}</TableCell>
-                                        <TableCell align="right">{entry?.date?.toUTCString()}</TableCell>
-                                        <TableCell align="right">{entry.size.value + entry.size.postfix}</TableCell>
+                                        <TableCell align="right">{entry?.date?.toDateString()}</TableCell>
+                                        <TableCell align="right">{`${entry.size.value} ${entry.size.postfix}`}</TableCell>
                                         <TableCell align="right">{entry.uploader}</TableCell>
                                     </TableRow>
                                 ))}
@@ -140,6 +185,7 @@ class Main extends Component
                         </Table>
                     </TableContainer>
                 </div>
+                <Button variant="contained" color="primary" onClick={this.executeLoadMore}>Load more</Button>{/* TODO: later on load more will be autoscroll*/}
             </div>
             
         );
