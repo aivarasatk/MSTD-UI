@@ -18,7 +18,8 @@ import Input from '@material-ui/core/Input';
 import * as api from "../../api/mstdApi"
 import * as mapping from "../../json/mapping"
 import { Configuration } from '../../configuration/Configuration';
-import { Card } from '@material-ui/core';
+import { Card, Drawer } from '@material-ui/core';
+import Settings from '../Settings/Settings';
 
 const startingPage:number = 1;
 
@@ -41,11 +42,13 @@ class Main extends Component
         searchValue: string,
         torrentEntries: api.TorrentEntry[],
         currentPage:number
-        sourceSearchStates: SourceSearchState[]
+        sourceSearchStates: SourceSearchState[],
+        settingsOpen: boolean
     }> 
     {
     
     apiClient: api.Client;
+    sources: api.SourceDto[] | undefined;
 
     constructor(props: any) {//TODO: realtype
         super(props);
@@ -57,9 +60,14 @@ class Main extends Component
             searchValue: "",
             torrentEntries: new Array<api.TorrentEntry>(),
             sourceSearchStates: new Array<SourceSearchState>(),
-            currentPage: startingPage
+            currentPage: startingPage,
+            settingsOpen: false
         };
         
+        this.apiClient.sources()
+            .then(
+                resp => this.sources = resp,
+                rejected => console.log(rejected) /* visual feeback */);
     }
 
     handleCategoryChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,7 +86,7 @@ class Main extends Component
     };
 
     executeSearch = (page?:number) => {
-        if(page == undefined)
+        if(page === undefined)
         {
             page = startingPage
             //reset
@@ -116,9 +124,25 @@ class Main extends Component
         this.setState({currentPage: this.state.currentPage + 1});
     }
 
+    openSettingsDrawer = () =>{
+        this.setState({settingsOpen: true});
+    }
+
+    closeSettingsDrawer = () =>{
+        this.setState({settingsOpen: false});
+    }
+
     render() {
         return (
             <div>
+                <Drawer 
+                    anchor="left" 
+                    variant="temporary"
+                    open={this.state.settingsOpen} 
+                    onClose={this.closeSettingsDrawer}>
+                    <Settings sources={this.sources}/>
+                </Drawer>
+
                 <Card>
                     <div style={{padding: 16}}>
                         <Grid container spacing={3}>
@@ -130,28 +154,28 @@ class Main extends Component
                                     <Button variant="contained" color="primary" onClick={() => this.executeSearch()}>Search</Button>
                                 </Grid>
                                 <Grid item >
-                                    <FormControl>
-                                        <Select value={this.state.searchOrderBy} onChange={this.onHandleOrderByChange}>
-                                            {
-                                                mapping.SortOrderMapping.map(a => 
-                                                    <MenuItem value={a.key}>{a.value}</MenuItem>
-                                                )
-                                            }
-                                        </Select>
-                                    </FormControl>
+                                    <Select value={this.state.searchOrderBy} onChange={this.onHandleOrderByChange}>
+                                        {
+                                            mapping.SortOrderMapping.map(a => 
+                                                <MenuItem key={a.key} value={a.key}>{a.value}</MenuItem>
+                                            )
+                                        }
+                                    </Select>
                                 </Grid>
                             </Grid>
 
                             <Grid container item xs={12}>
-                                <FormControl component="fieldset">
-                                    <RadioGroup row aria-label="categories" value={this.state.searchCategory} onChange={this.handleCategoryChange}>
-                                        {
-                                            mapping.TorrentCategoryMapping.map(c =>
-                                                <FormControlLabel value={c} control={<Radio />} label={c} />
-                                            )
-                                        }
-                                    </RadioGroup>
-                                </FormControl>
+                                <RadioGroup row aria-label="categories" value={this.state.searchCategory} onChange={this.handleCategoryChange}>
+                                    {
+                                        mapping.TorrentCategoryMapping.map(c =>
+                                            <FormControlLabel key={c} value={c} control={<Radio />} label={c} />
+                                        )
+                                    }
+                                </RadioGroup>
+                            </Grid>
+
+                            <Grid container item>
+                                <Button variant="contained" color="primary" onClick={this.openSettingsDrawer}>Settings</Button>
                             </Grid>
                         </Grid>
                     </div>
